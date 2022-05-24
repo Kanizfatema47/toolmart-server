@@ -18,20 +18,21 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 
-app.get('/', (req,res)=>{
-    res.send("Hello from server")
+app.get('/', (req, res) => {
+  res.send("Hello from server")
 })
 
-async function run(){
+async function run() {
 
-  try{
+  try {
     await client.connect();
     const toolsCollection = client.db('db-tools').collection('tools');
+    const ordercollection = client.db('db-tools').collection('order');
     console.log('db is connected');
 
     //tools
 
-    app.get('/tools' , async (req, res)=>{
+    app.get('/tools', async (req, res) => {
       const query = {};
       const cursor = toolsCollection.find(query)
       const tools = await cursor.toArray()
@@ -40,26 +41,26 @@ async function run(){
 
     //toolsDetails
 
-    app.get('/toolDetails/:id', async(req, res)=>{
+    app.get('/toolDetails/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id:ObjectId(id)}
+      const query = { _id: ObjectId(id) }
       const toolDetails = await toolsCollection.findOne(query);
       res.send(toolDetails)
     })
 
     //update Increase Quantity
 
-    app.put('/increase/:id', async(req, res)=>{
+    app.put('/increase/:id', async (req, res) => {
       const id = req.params.id;
       const increasedQuantity = req.body;
       const newQuantity = increasedQuantity.updatedQuantity;
       const filter = {
-        _id:ObjectId(id)
+        _id: ObjectId(id)
       }
-      const options = {upsert: true}
+      const options = { upsert: true }
       const updatedDoc = {
-        $set : {
-          min_order_quantity : newQuantity
+        $set: {
+          min_order_quantity: newQuantity
         }
       }
       const result = await toolsCollection.updateOne(filter, updatedDoc, options)
@@ -70,31 +71,39 @@ async function run(){
     // Decrease quantity
 
 
-app.put('/decrease/:id', async(req, res)=>{
+    app.put('/decrease/:id', async (req, res) => {
       const id = req.params.id;
       const decreasedQuantity = req.body;
       const newQuantity = decreasedQuantity.updatedQuantity;
       const filter = {
-        _id:ObjectId(id)
+        _id: ObjectId(id)
       }
-      const options = {upsert: true}
+      const options = { upsert: true }
       const updatedDoc = {
-        $set : {
-          min_order_quantity : newQuantity
+        $set: {
+          min_order_quantity: newQuantity
         }
       }
       const result = await toolsCollection.updateOne(filter, updatedDoc, options)
       res.send(result)
     })
 
+    //order
+
+    app.post("/order", async (req, res) => {
+      const newService = req.body;
+      const result = await ordercollection.insertOne(newService);
+      res.send(result);
+    });
+
 
   }
-  finally{
+  finally {
 
   }
 }
 run().catch(console.dir);
 
-app.listen(port, ()=>{
-    console.log(`Port ${port}`)
+app.listen(port, () => {
+  console.log(`Port ${port}`)
 })
