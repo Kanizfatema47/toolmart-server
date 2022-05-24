@@ -67,6 +67,27 @@ async function run(){
     })
 
 
+    // Decrease quantity
+
+
+app.put('/decrease/:id', async(req, res)=>{
+      const id = req.params.id;
+      const decreasedQuantity = req.body;
+      const newQuantity = decreasedQuantity.updatedQuantity;
+      const filter = {
+        _id:ObjectId(id)
+      }
+      const options = {upsert: true}
+      const updatedDoc = {
+        $set : {
+          min_order_quantity : newQuantity
+        }
+      }
+      const result = await toolsCollection.updateOne(filter, updatedDoc, options)
+      res.send(result)
+    })
+
+
   }
   finally{
 
