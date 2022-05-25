@@ -27,8 +27,8 @@ async function run() {
   try {
     await client.connect();
     const toolsCollection = client.db('db-tools').collection('tools');
-    const ordercollection = client.db('db-tools').collection('order');
-    const reviewcollection = client.db('db-tools').collection('review');
+    const orderCollection = client.db('db-tools').collection('order');
+    const reviewCollection = client.db('db-tools').collection('review');
     console.log('db is connected');
 
     //tools
@@ -93,14 +93,14 @@ async function run() {
 
     app.post("/order", async (req, res) => {
       const newService = req.body;
-      const result = await ordercollection.insertOne(newService);
+      const result = await orderCollection.insertOne(newService);
       res.send(result);
     });
 
     //Dashboard review
     app.post("/review", async (req, res) => {
       const newReview = req.body;
-      const result = await reviewcollection.insertOne(newReview);
+      const result = await reviewCollection.insertOne(newReview);
       res.send(result);
     });
 
@@ -108,9 +108,17 @@ async function run() {
     app.get("/order", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
-      const cursor = ordercollection.find(query);
+      const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
       res.send(orders);
+    });
+
+    // Deleting the order
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = orderCollection.deleteOne(query);
+      res.send(result);
     });
 
 
