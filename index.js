@@ -28,6 +28,7 @@ async function run() {
     await client.connect();
     const toolsCollection = client.db('db-tools').collection('tools');
     const ordercollection = client.db('db-tools').collection('order');
+    const reviewcollection = client.db('db-tools').collection('review');
     console.log('db is connected');
 
     //tools
@@ -93,6 +94,13 @@ async function run() {
     app.post("/order", async (req, res) => {
       const newService = req.body;
       const result = await ordercollection.insertOne(newService);
+      res.send(result);
+    });
+
+    //Dashboard review
+    app.post("/review", async (req, res) => {
+      const newReview = req.body;
+      const result = await reviewcollection.insertOne(newReview);
       res.send(result);
     });
 
