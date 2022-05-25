@@ -104,6 +104,15 @@ async function run() {
       res.send(result);
     });
 
+    // getting individual orders
+    app.get("/order", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const cursor = ordercollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+
 
   }
   finally {
