@@ -1,5 +1,7 @@
 const express = require('express')
 const cors = require('cors')
+var jwt = require('jsonwebtoken');
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
@@ -29,6 +31,7 @@ async function run() {
     const toolsCollection = client.db('db-tools').collection('tools');
     const orderCollection = client.db('db-tools').collection('order');
     const reviewCollection = client.db('db-tools').collection('review');
+    const userCollection = client.db('db-tools').collection('users');
     console.log('db is connected');
 
     //tools
@@ -88,6 +91,7 @@ async function run() {
       const result = await toolsCollection.updateOne(filter, updatedDoc, options)
       res.send(result)
     })
+    
 
     //order
 
@@ -120,6 +124,38 @@ async function run() {
       const result = orderCollection.deleteOne(query);
       res.send(result);
     });
+
+
+    // storing all user to the server
+      app.put("/users/:email", async (req, res) => {
+        const email = req.params.email;
+        const user = req.body;
+        const userInfo = req.body;
+        const filter = { email: email };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            name: userInfo.name,
+            email: user.email || userInfo.email,
+            location: userInfo.location,
+            phone: userInfo.phone,
+            linkedin: userInfo.linkedin,
+          },
+        };
+        const result = await userCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        const token = jwt.sign(
+          { email: email },
+          process.env.ACCESS_TOKEN_SECRET,
+          {
+            expiresIn: "2h",
+          }
+        );
+        res.send({ result, token });
+      });
 
 
   }
