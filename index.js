@@ -24,6 +24,30 @@ app.get('/', (req, res) => {
   res.send("Hello from server")
 })
 
+
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+
+    req.decoded = decoded;
+  
+    next();
+  });
+}
+
+
+
 async function run() {
 
   try {
@@ -156,6 +180,42 @@ async function run() {
         );
         res.send({ result, token });
       });
+
+
+      // getting user information
+
+      app.get("/userInfo",  async (req, res) => {
+        const email = req.query.email;
+
+        console.log(email);
+        console.log("///");
+
+        const query = { email: email };
+        const cursor = userCollection.find(query);
+        const user = await cursor.toArray();
+        return res.send(user);
+
+        // const decodedEmail = req.decoded.email;
+        // console.log(decodedEmail);
+
+        // if (email === decodedEmail) {
+        //   const query = { email: email };
+        //   const cursor = userCollection.find(query);
+        //   const user = await cursor.toArray();
+        //   return res.send(user);
+        // } else {
+        //   return res.status(403).send({ message: "Forbidden Access" });
+        // }
+      });
+
+      // getting all admin users
+
+      app.get("/adminusers", verifyJWT, async (req, res) => {
+        const users = await userCollection.find().toArray();
+        res.send(users);
+      });
+
+
 
 
   }
