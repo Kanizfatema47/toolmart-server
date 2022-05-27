@@ -41,7 +41,7 @@ function verifyJWT(req, res, next) {
     }
 
     req.decoded = decoded;
-  
+
     next();
   });
 }
@@ -115,7 +115,7 @@ async function run() {
       const result = await toolsCollection.updateOne(filter, updatedDoc, options)
       res.send(result)
     })
-    
+
 
     //order
 
@@ -151,70 +151,94 @@ async function run() {
 
 
     // storing all user to the server
-      app.put("/users/:email", async (req, res) => {
-        const email = req.params.email;
-        const user = req.body;
-        const userInfo = req.body;
+    app.put("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const userInfo = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: userInfo.name,
+          email: user.email || userInfo.email,
+          location: userInfo.location,
+          phone: userInfo.phone,
+          linkedin: userInfo.linkedin,
+        },
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+          expiresIn: "2h",
+        }
+      );
+      res.send({ result, token });
+    });
+
+
+    // getting user information
+
+    app.get("/userInfo", async (req, res) => {
+      const email = req.query.email;
+
+      console.log(email);
+      console.log("///");
+
+      const query = { email: email };
+      const cursor = userCollection.find(query);
+      const user = await cursor.toArray();
+      return res.send(user);
+
+      // const decodedEmail = req.decoded.email;
+      // console.log(decodedEmail);
+
+      // if (email === decodedEmail) {
+      //   const query = { email: email };
+      //   const cursor = userCollection.find(query);
+      //   const user = await cursor.toArray();
+      //   return res.send(user);
+      // } else {
+      //   return res.status(403).send({ message: "Forbidden Access" });
+      // }
+    });
+
+    // getting all admin users
+
+    app.get("/adminusers", verifyJWT, async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
+
+    // making an user to admin
+    app.put("/adminusers/admin/:email", verifyJWT, async (req, res) => {
+      
+
+      const email = req.params.email;
+
+      const requester = req.decoded.email;
+
+      const requesterAccount = await userCollection.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role === "admin") {
         const filter = { email: email };
-        const options = { upsert: true };
+
         const updateDoc = {
-          $set: {
-            name: userInfo.name,
-            email: user.email || userInfo.email,
-            location: userInfo.location,
-            phone: userInfo.phone,
-            linkedin: userInfo.linkedin,
-          },
+          $set: { role: "admin" },
         };
-        const result = await userCollection.updateOne(
-          filter,
-          updateDoc,
-          options
-        );
-        const token = jwt.sign(
-          { email: email },
-          process.env.ACCESS_TOKEN_SECRET,
-          {
-            expiresIn: "2h",
-          }
-        );
-        res.send({ result, token });
-      });
+        const result = await userCollection.updateOne(filter, updateDoc);
 
-
-      // getting user information
-
-      app.get("/userInfo",  async (req, res) => {
-        const email = req.query.email;
-
-        console.log(email);
-        console.log("///");
-
-        const query = { email: email };
-        const cursor = userCollection.find(query);
-        const user = await cursor.toArray();
-        return res.send(user);
-
-        // const decodedEmail = req.decoded.email;
-        // console.log(decodedEmail);
-
-        // if (email === decodedEmail) {
-        //   const query = { email: email };
-        //   const cursor = userCollection.find(query);
-        //   const user = await cursor.toArray();
-        //   return res.send(user);
-        // } else {
-        //   return res.status(403).send({ message: "Forbidden Access" });
-        // }
-      });
-
-      // getting all admin users
-
-      app.get("/adminusers", verifyJWT, async (req, res) => {
-        const users = await userCollection.find().toArray();
-        res.send(users);
-      });
-
+        res.send(result);
+      } else {
+        res.status(401).send({ message: "forbidden" });
+      }
+    });
 
 
 
