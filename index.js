@@ -58,6 +58,7 @@ async function run() {
     const orderCollection = client.db('db-tools').collection('order');
     const reviewCollection = client.db('db-tools').collection('review');
     const userCollection = client.db('db-tools').collection('users');
+    const userCollectionFull = client.db('db-tools').collection('usersinfo');
     console.log('db is connected');
 
     //tools
@@ -190,10 +191,9 @@ async function run() {
       const email = req.query.email;
 
       console.log(email);
-      console.log("///");
 
       const query = { email: email };
-      const cursor = userCollection.find(query);
+      const cursor = userCollectionFull.find(query);
       const user = await cursor.toArray();
       return res.send(user);
 
@@ -329,6 +329,7 @@ async function run() {
    
       res.send({updateorder})
  })
+
 
 
 
