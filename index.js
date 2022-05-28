@@ -3,6 +3,7 @@ const cors = require('cors')
 var jwt = require('jsonwebtoken');
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { system } = require('nodemon/lib/config');
 
 
 require('dotenv').config();
@@ -243,11 +244,18 @@ async function run() {
 
     // getting all orders
 
-    app.get("/order", async (req, res) => {
+   app.get('/neworder', async (req,res)=>{
+     const query = {};
+     const cursor = orderCollection.find(query);
+     const orders = await cursor.toArray();
+     res.send(orders)
+   })
+
+    app.get("/review", async (req, res) => {
       const query = {};
-      const cursor = orderCollection.find(query);
-      const orders = await cursor.toArray();
-      res.send(orders);
+      const cursor = reviewCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
     });
 
 
@@ -267,6 +275,14 @@ async function run() {
       res.send(result);
     });
 
+
+    // Deleting the product
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = toolsCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
 
