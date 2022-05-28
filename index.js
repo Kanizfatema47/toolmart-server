@@ -284,6 +284,14 @@ async function run() {
       res.send(result);
     });
 
+    // checking ig the user is a admin or not
+    app.get("/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+
 
 
 
