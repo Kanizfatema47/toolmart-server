@@ -241,6 +241,35 @@ async function run() {
     });
 
 
+    // getting all orders
+
+    app.get("/order", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+
+
+    // Deleting the order
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
+
+    // post a data
+    app.post("/newproduct", async (req, res) => {
+      const newproduct = req.body;
+      const result = await toolsCollection.insertOne(newproduct);
+      res.send(result);
+    });
+
+
+
+
 
   }
   finally {
